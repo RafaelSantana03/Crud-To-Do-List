@@ -1,4 +1,5 @@
 using Crud_To_Do_List.Data;
+using Crud_To_Do_List.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Crud_To_Do_List;
@@ -12,7 +13,7 @@ public class Program
         // Add services to the container.
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+        builder.Services.AddScoped<ITarefaRepository, TarefaRepository>();
         builder.Services.AddControllers();
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
