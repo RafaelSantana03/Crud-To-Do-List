@@ -1,4 +1,5 @@
 ﻿using Crud_To_Do_List.Data;
+using Crud_To_Do_List.DTOs;
 using Crud_To_Do_List.Models;
 using Crud_To_Do_List.Repositories;
 using Microsoft.AspNetCore.Http;
@@ -19,42 +20,79 @@ public class TarefasController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<List<Tarefa>> ListarTarefas()
+    public ActionResult<List<TarefaResponseDto>> ListarTarefas()
     {
-        return Ok(_repository.ListarTodas());
+        var tarefas = _repository.ListarTodas();
+
+        //converte cada tarefa (model) para TarefaResponseDto usando LINQ
+        var reponse = tarefas.Select(t => new TarefaResponseDto
+        {
+            Id = t.Id,
+            Titulo = t.Titulo,
+            Descricao = t.Descricao,
+            Concluida = t.Concluida,
+            DataCriacao = t.DataCriacao
+        }).ToList();
+
+        return Ok(reponse);
     }
 
     [HttpGet("{id}")]
-    public ActionResult<Tarefa> ObterTarefa(int id)
+    public ActionResult<TarefaResponseDto> ObterTarefa(int id)
     {
         var tarefa = _repository.ObterPorId(id);
         if (tarefa == null)
             return NotFound();
-        return Ok(tarefa);
+
+        var response = new TarefaResponseDto
+        {
+            Id = tarefa.Id,
+            Titulo = tarefa.Titulo,
+            Descricao = tarefa.Descricao,
+            Concluida = tarefa.Concluida,
+            DataCriacao = tarefa.DataCriacao
+        };
+
+        return Ok(response);
     }
 
     [HttpPost("CriarTarefa")]
-    public ActionResult<Tarefa> CriarTarefa(Tarefa novaTarefa)
+    public ActionResult<TarefaResponseDto> CriarTarefa(TarefaRequestDTO novaTarefa)
     {
-        if (string.IsNullOrWhiteSpace(novaTarefa.Titulo))
-            return BadRequest("O título é obrigatório.");  
-        
-        novaTarefa.DataCriacao = DateTime.UtcNow;
-        _repository.Criar(novaTarefa);
+        //Converte o DTO recebido em um model para salvar no banco
+        var tarefa = new Tarefa
+        {
+            Titulo = novaTarefa.Titulo,
+            Descricao = novaTarefa.Descricao,
+            Concluida = novaTarefa.Concluida,
+            DataCriacao = DateTime.UtcNow
+        };
 
-        return CreatedAtAction(nameof(ObterTarefa), new { id = novaTarefa.Id }, novaTarefa);
+        _repository.Criar(tarefa);
+
+        var response = new TarefaResponseDto
+        {
+            Id = tarefa.Id,
+            Titulo = tarefa.Titulo,
+            Descricao = tarefa.Descricao,
+            Concluida = tarefa.Concluida,
+            DataCriacao = tarefa.DataCriacao
+        };
+
+        return CreatedAtAction(nameof(ObterTarefa), new { id = tarefa.Id }, response);
     }
 
     [HttpPut("AtualizarTarefa/{id}")]
-    public ActionResult AtualizarTarefa(int id, Tarefa tarefaAtualizada)
+    public ActionResult AtualizarTarefa(int id, TarefaRequestDTO dto)
     {
         var tarefa = _repository.ObterPorId(id);
         if (tarefa == null)
             return NotFound();
 
-        tarefa.Titulo = tarefaAtualizada.Titulo;
-        tarefa.Descricao = tarefaAtualizada.Descricao;
-        tarefa.Concluida = tarefaAtualizada.Concluida;
+        // Atualiza o Model com os dados do DTO
+        tarefa.Titulo = dto.Titulo;
+        tarefa.Descricao = dto.Descricao;
+        tarefa.Concluida = dto.Concluida;
         _repository.Atualizar(tarefa);
 
         return NoContent();
