@@ -57,29 +57,29 @@ public class TarefasController : ControllerBase
     }
 
     [HttpPost("CriarTarefa")]
-    public ActionResult<TarefaResponseDto> CriarTarefa(TarefaRequestDTO novaTarefa)
+    public ActionResult<TarefaResponseDto> CriarTarefa(TarefaRequestDTO dto)
     {
         //Converte o DTO recebido em um model para salvar no banco
-        var tarefa = new Tarefa
+        var NovaTarefa = new Tarefa
         {
-            Titulo = novaTarefa.Titulo,
-            Descricao = novaTarefa.Descricao,
-            Concluida = novaTarefa.Concluida,
-            DataCriacao = DateTime.UtcNow
+            Titulo = dto.Titulo,
+            Descricao = dto.Descricao,
+            Concluida = dto.Concluida,
+            DataCriacao = DateTime.Now
         };
 
-        _repository.Criar(tarefa);
+        _repository.Criar(NovaTarefa);
 
         var response = new TarefaResponseDto
         {
-            Id = tarefa.Id,
-            Titulo = tarefa.Titulo,
-            Descricao = tarefa.Descricao,
-            Concluida = tarefa.Concluida,
-            DataCriacao = tarefa.DataCriacao
+            Id = NovaTarefa.Id,
+            Titulo = NovaTarefa.Titulo,
+            Descricao = NovaTarefa.Descricao,
+            Concluida = NovaTarefa.Concluida,
+            DataCriacao = NovaTarefa.DataCriacao
         };
 
-        return CreatedAtAction(nameof(ObterTarefa), new { id = tarefa.Id }, response);
+        return CreatedAtAction(nameof(ObterTarefa), new { id = NovaTarefa.Id }, response);
     }
 
     [HttpPut("AtualizarTarefa/{id}")]
